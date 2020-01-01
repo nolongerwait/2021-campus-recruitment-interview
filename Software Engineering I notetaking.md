@@ -64,7 +64,7 @@ This takes the fundamental process activities of specifica- tion, development, v
 
 - Software requirements change quickly
 
-  #### Incremental(evolutionary) development
+#### Incremental(evolutionary) development
 
 Defined to encompass flexibility and change anticipation.
 
@@ -86,7 +86,7 @@ System is developed as a series of versions.
 - The process is not visible.
 - System structure tends to degrade as new increments are added.
 
-  #### Integration and configuration
+#### Integration and configuration
 
 Configuring reusable components for use in a new setting and integrating them into a system.
 
@@ -106,7 +106,7 @@ Configuring reusable components for use in a new setting and integrating them in
 - Requirements compromises are inevitable.
 - Loss of control over evolution of reused system components.
 
-  #### Code and fix
+#### Code and fix
 
 It starts with little or no initial planning. You immediately start developing, fixing problems as they occur, until the project is complete(hopefully).
 
@@ -126,7 +126,7 @@ It starts with little or no initial planning. You immediately start developing, 
 - Mistakes hard to detect / correct
 - Impossible for large projects, communication breakdown, chaos.
 
-  #### Spiral
+#### Spiral
 
 - Is favoured for large, expensive and complicated projects.
 - Used for risk management that combines the iterative development process.
@@ -140,31 +140,54 @@ It starts with little or no initial planning. You immediately start developing, 
 ##### Disadvantages
 
 - Spiral Model is not suitable for small projects as it is expensive.
+
 - Too much dependable on Risk Analysis hence it needs very highly experienced expertise.
+
 - Time management issues.
 
-  #### Rapid prototyping
+#### Rapid prototyping
 
-  #### Unified Process
+#### Unified Process
 
-  #### Agile -> XP
+#### Agile -> XP
 
-  #### Three stages of software testing:
+Special Incremental developments
 
-  * ***Component testing 组件测试*** each component is tested individually usually by its own developer.
-  * ***System testing*** tests the whole system as an integrated software and tries to find out any problem which is due to interaction between the component.
-  * ***Acceptance(customer) testing 验收测试*** the system is tested by the user/customer/potential customer. It also shows how well the software is meeting the requirements.
+### Coping with change 应对变更
 
-  #### Real-time system
+- ***Change anticipation*** 变更避免 the software process includes activities that can anticipate possible changes before significant rework is required.
+  - *Prototyping* A version of the system or part of the system is developed quickly to check customer's requirements and fesibility of design decisions.
+- ***Change tolerance*** 变更容忍 the process is designed so that changes can be accommodated at relatively low cost.
+  - *Incremental delivery* System increments are delivered to the customer for comment and experimentation. This supports both *change avoidance* and *change tolerance*.
 
-  Real-time systems usually involve many hardware components which are not easy to change and cannot be incremental. Also real-time systems usually safety critical which needed be built based on **well planned process**. 
+### Software Engineering Principles
 
-  #### Functional & non-functional requirements
+- Rigor and Formality
+- Separation of Concerns
+- Modularity
+- Abstraction
+- Anticipation of Change
+- Generality
+- Incrementality
 
-  * ***Functional requirements***
+## Agile Software Development
 
-  Stataments of services the system should provide how the system should react to particular inputs.
+#### Three stages of software testing:
 
-  * ***Non-functional requirements***
+* ***Component testing 组件测试*** each component is tested individually usually by its own developer.
+* ***System testing*** tests the whole system as an integrated software and tries to find out any problem which is due to interaction between the component.
+* ***Acceptance(customer) testing 验收测试*** the system is tested by the user/customer/potential customer. It also shows how well the software is meeting the requirements.
 
-  Constraints on the services or functions offered by the system such as timing constraints, constraints on the development process, standards, etc.
+#### Real-time system
+
+Real-time systems usually involve many hardware components which are not easy to change and cannot be incremental. Also real-time systems usually safety critical which needed be built based on **well planned process**. 
+
+#### Functional & non-functional requirements
+
+* ***Functional requirements***
+
+Stataments of services the system should provide how the system should react to particular inputs.
+
+* ***Non-functional requirements***
+
+Constraints on the services or functions offered by the system such as timing constraints, constraints on the development process, standards, etc.
