@@ -1,4 +1,4 @@
-# Software Engineering Ⅰ
+# Software Engineering Ⅰ and Ⅱ
 
 [TOC]
 
