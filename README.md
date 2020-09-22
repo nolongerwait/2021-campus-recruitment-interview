@@ -1453,4 +1453,48 @@
 
 <details>
     <summary>SSL和TLS的区别</summary>
+    <div>
+        <p><strong>TLS和SSL的关系：并列关系</strong></p>
+        <p>最新版本的TLS（Transport Layer Security，传输层安全协议）是IETF（Internet Engineering Task
+            Force，Internet工程任务组）制定的一种新的协议，它建立在SSL 3.0协议规范之上，是SSL 3.0的后续版本。在TLS与SSL
+            3.0之间存在着显著的差别，主要是它们所支持的加密算法不同，所以TLS与SSL 3.0不能互操作。</p>
+        <p><strong>TLS与SSL的差异</strong></p>
+        <ul>
+            <li>1）版本号：TLS记录格式与SSL记录格式相同，但版本号的值同，TLS的版本1.0使用的版本号为SSLv3.1。</li>
+            <li>2）报文鉴别码：SSLv3.0和TLS的MAC算法及MAC计算的范围同。TLS使用RFC-2104定义的HMAC算法。SSLv3.0使用了相似的法，两者差别在于SSLv3.0中，填充字节与密钥之间采用的是连接算，而HMAC算法采用的异或运算。但是两者的安全程度是相同的。
+            </li>
+            <li>3）伪随机函数：TLS使用了称为PRF的伪随机函数来将密钥扩展数据块，是更安全的方式。</li>
+            <li>4）报警代码：TLS支持几乎所有的SSLv3.0报警代码，而且TLS补充定义了很多报警代码，如解密失败（decryption_failed）记录溢出（record_overflow）、未知CA（unknown_ca）、拒访问（access_denied）等。
+            </li>
+            <li>5）密文族和客户证书：SSLv3.0和TLS存在少量差别，即TLS不持Fortezza密钥交换、加密算法和客户证书。</li>
+            <li>6）certificate_verify和finished消息：SSLv3.0和TLS用certificate_verify和finished消息计算MD5和SHA-1散列时，计算的输入有少许差别，但安全性相当。
+            </li>
+            <li>7）加密计算：TLS和SSLv3.0在计算主密值（master secret时采用的方式不同。</li>
+            <li>8）填充：用户数据加密之前需要增加的填充字节。在SSL中，填充后的数据长度哟啊达到密文快长度的最小整数倍。而在TLS中，填充后的数据长度可以是密文块长度的任意整数倍（但填充的最大长度为255字节），这种方式可以防止基于对报文长度进行分析的攻击。
+            </li>
+        </ul>
+        <ol>
+            <li>
+                <p><strong>TLS的主要增强内容</strong><br>
+                    TLS的主要目标是使SSL更安全，并使协议的规范更精确和完善。TLS在SSL v3.0的基础上，提供了以下增加内容：</p>
+                <ul>
+                    <li>1）更安全的MAC算法</li>
+                    <li>2）更严密的警报</li>
+                    <li>3）“灰色区域”规范的更明确的定义</li>
+                </ul>
+            </li>
+            <li>
+                <p><strong>TLS对于安全性的改进</strong></p>
+                <ul>
+                    <li>1）对于消息认证使用密钥散列法：TLS使用“消息认证代码的密钥散列法”（HMAC），当记录在开放的网络（如因特网）上传送时，该代码确保记录不会被变更。SSLv3.0还提供键控消息认证，但HMAC比SSLv3.0使用（消息认证代码）MAC功能更安全。
+                    </li>
+                    <li>2）增强的伪随机功能（PRF）：PRF生成密钥数据。在TLS中，HMAC定义PRF。PRF使用两种散列算法保证其安全性。如果任一算法暴露了，只要第二种算法未暴露，则数据仍然是安全的。</li>
+                    <li>3）改进的已完成消息验证：TLS和SSLv3.0都对两个端点提供已完成的消息，该消息认证交换的消息没有被变更。然而，TLS将此已完成消息基于PRF和HMAC值之上，这也比SSLv3.0更安全。
+                    </li>
+                    <li>4）一致证书处理：与SSLv3.0不同，TLS试图指定必须在TLS之间实现交换的证书类型。</li>
+                    <li>5）特定警报消息：TLS提供更多的特定和附加警报，以指示任一会话端点检测到的问题。TLS还对何时应该发送某些警报进行记录。</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
 </details>
