@@ -384,6 +384,11 @@
 ### 计算机网络
 
 <details>
+    <summary>OSI七层网络模型图：物理/链路/网络/传输/会话/表示/应用</summary>
+    <p><img src="image/image12.gif" alt=""></p>
+</details>
+
+<details>
     <summary>浏览器输入一个地址到看到返回内容中间发生了什么?</summary>
     <ol>
         <li>查询DNS，获取域名对应的IP。<br>
