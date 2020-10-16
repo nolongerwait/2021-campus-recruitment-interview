@@ -392,7 +392,8 @@
     <summary>TCP/IP四层参考模型</summary>
     <div>
         <p>以下是TCP/IP分层模型</p>
-        <pre data-role="codeBlock" data-info="" class="language-"><code>    ┌──────────────┐┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
+        <pre data-role="codeBlock" data-info="" class="language-"><code>
+      ┌──────────────┐┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
       │              ││ D │ F │ W │ F │ H │ G │ T │ I │ S │ U │ o │
       │              ││ N │ I │ H │ T │ T │ O │ E │ R │ M │ S │ t │
       │ 第四层 应用层  ││ S │ N │ O │ P │ T │ P │ L │ C │ T │ E │ h │
