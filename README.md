@@ -545,6 +545,31 @@
 </details>
 
 <details>
+    <summary>DNS的过程</summary>
+    <div>
+        <p>域名并敲回车时，浏览器需要将其解析为IP地址才能真正通信。小明的电脑通常会配置一个本地域名服务器，其实这个本地域名服务器，只是用于加速域名解析而存在的。为了让读者更清晰地知道域名解析到底是如何工作的，现在假设小明配置的域名（DNS）服务器不是本地服务器，而是13个根域名服务器的任意一个，比如<strong>198.41.0.4</strong>
+        </p>
+        <p><strong>第一次查询（根级域名）</strong></p>
+        <p>小明会给根域名服务器198.41.0.4发送一个DNS查询请求（请解析www.goole.com的IP地址），由于该<strong>根服务器（老爷爷）</strong>
+            并没有该记录，但是他却知道自己的一个孩子可能会知道，这个孩子的名字叫<strong>com服务器（爸爸）</strong>。于是这个根服务器（老爷爷）将皮球踢了回来，告诉小明，他孩子（爸爸）的IP地址，让小明直接联系爸爸。
+        </p>
+        <p><strong>第二次查询（一级域名）</strong></p>
+        <p>小明的电脑又一次联系com服务器（爸爸），请求解析www.google.com的IP地址。爸爸在自己<strong>亲自管理的权威数据库</strong>，只查询到google.com对应的IP地址，但没有www.google.com的IP地址。但爸爸觉得<strong>儿子（<a
+                    href="http://google.com">google.com</a>）</strong> 可能知道，将儿子的IP地址返回给小明。</p>
+        <p><strong>第三次查询（二级域名）</strong></p>
+        <p>小明的电脑锲而不舍，继续向儿子所在的IP查询。儿子看到域名笑了这不正是自己孩子 <a
+                href="http://www.google.com">www.google.com</a>（孙子）的域名吗？于是返回对应的IP给小明。</p>
+        <p>意味着小明的电脑光解析域名这一项工作，就跑了三个来回（Round Trip），需要3次RTT时间的延迟。<br>
+            还需要1.5 次RTT时间延迟建立TCP连接，然后还需要至少2次RTT建立TLS安全连接。还需要至少1次HTTP业务交易RTT时间延迟。<br>
+            至少需要7.5次RTT时间，平均一次RTT= 200ms, 那么意味着小明最快需要1.5秒的时间可以看到http页面。</p>
+        <p><strong>本地DNS服务器</strong></p>
+        <p>小明的电脑配置的DNS服务器是本地服务器，假设为114.114.114.114。小明直接联系该服务器做查询服务，该服务器查询自己的高速缓存，发现小丽刚刚查询过www.google.com的IP地址，在缓存中，于是直接返回。剩下的工作与之前相同。整个通信过程花费1
+            + 1.5 + 2 +1 = 5.5 RTT 时间延迟。</p>
+        <p>注意：本地DNS服务器缓存的IP是非权威性的。</p>
+    </div>
+</details>
+
+<details>
     <summary>OSI七层网络模型图：物理/链路/网络/传输/会话/表示/应用</summary>
     <p><img src="image/image12.gif" alt=""></p>
 </details>
