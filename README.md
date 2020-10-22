@@ -1860,44 +1860,75 @@
         </ol>
         <p><strong>HTTPS的通信步骤</strong></p>
         <p><img src="image/image10.png" alt="" /></p>
+        <p><strong>客户端：client-hello</strong></p>
+        <ul>
+            <li>步骤1:
+                客户端通过发送<code>Client-Hello</code>报文开始SSL通信。报文中包含客户端支持的最高TSL协议版本version、加密组件列表cipher_suites、压缩算法compresssion_method、随机数random_C和扩展字段extensions。
+            </li>
+        </ul>
+        <p><strong>服务器：server-hello + certificate + server-hello-done</strong></p>
         <ul>
             <li>
-                <p>步骤1: 客户端通过发送Client
-                    Hello报文开始SSL通信（这里是在TCP的三次握手已经完成的基础上进行的）。报文中包含客户端支持的SSL的指定版本、加密组件列表（所使用的加密算法及密钥长度等）。</p>
+                <p>步骤2:
+                    服务器可进行SSL通信时，会以<code>Server-Hello</code>报文作为应答。该报文包括服务器选择使用的TSL版本version、加密组件cipher_suites、压缩算法compression_method、随机数random_S。
+                </p>
             </li>
             <li>
-                <p>步骤2: 服务器可进行SSL通信时，会以Server Hello报文作为应答。和客户端一样，在报文中包含SSL版本以及加密组件。服务器的加密组件内容是从接收到的客户端加密组件内筛选出来的。</p>
+                <p>步骤3: 之后服务器发送<code>Certificate</code>报文。报文中包含公开密钥证书。用于身份验证和密钥交换。</p>
             </li>
             <li>
-                <p>步骤3: 之后服务器发送Certificate报文。报文中包含公开密钥证书。</p>
+                <p>步骤4: 最后服务器发送<code>Server-Hello-Done</code>报文通知客户端，最初阶段的SSL握手协商部分结束。</p>
+            </li>
+        </ul>
+        <p><strong>客户端：证书验证</strong></p>
+        <ul>
+            <li>步骤5: 客户端验证证书的合法性，如果验证通过才会进行后续通信，否则根据错误情况不同做出提示和操作，合法性验证包括如下：证书链的可信性 trusted certificate path；证书是否吊销
+                revocation，有两类方式离线 CRL 与在线 OCSP，不同的客户端行为会不同； 有效期 expiry date，证书是否在有效时间范围；域名
+                domain，核查证书域名是否与当前的访问域名匹配，匹配规则后续分析;</li>
+        </ul>
+        <p><strong>客户端：client-key-exchange + change-cipher-spec + encrypted-handshake-message</strong></p>
+        <ul>
+            <li>
+                <p>步骤6: SSL第一次握手结束之后，客户端以<code>Client-Key-Exchange</code>报文作为回应。报文中包含客户端计算产生随机数字
+                    Pre-master，并用步骤3中证书公钥加密，发送给服务器。</p>
             </li>
             <li>
-                <p>步骤4: 最后服务器发送Server Hello Done 报文通知客户端，最初阶段的SSL握手协商部分结束。</p>
+                <p>步骤7: 接着客户端继续发送<code>Change-Cipher-Spec</code>报文。在上一步完成后客户端已经获取全部的计算协商密钥需要的信息：两个明文随机数 random_C 和
+                    random_S 与自己计算产生的 Pre-master，计算得到协商密钥 enc_key=Fuc(random_C, random_S,
+                    Pre-Master)。此时客户端通知服务器后续的通信都采用协商的通信密钥和加密算法进行加密通信;</p>
             </li>
             <li>
-                <p>步骤5: SSL第一次握手结束之后，客户端以Client Key Exchange报文作为回应。报文中包含通信加密中使用的一种被称为Pre-master
-                    secret的随机密码串。该报文已用步骤3中的公开密钥进行加密。</p>
+                <p>步骤8: 客户端发送<code>Finished(encrypted_handshake_message)</code>报文。结合之前所有通信参数的 hash 值与其它相关信息生成一段数据，采用协商密钥
+                    session secret 与算法进行加密，然后发送给服务器用于数据与握手验证。这次握手协商是否能够成功，要以服务器是否能够正确解密该报文作为判定标准。</p>
+            </li>
+        </ul>
+        <p><strong>服务器：change-cipher-spec + encrypted-handshake-message</strong></p>
+        <ul>
+            <li>
+                <p>步骤9: 服务器用私钥解密加密的 Pre-master 数据，基于之前交换的两个明文随机数 random_C 和 random_S，计算得到协商密钥:enc_key=Fuc(random_C,
+                    random_S, Pre-Master);并且，计算之前所有接收信息的 hash 值，然后解密客户端发送的
+                    <code>encrypted_handshake_message</code>，验证数据和密钥正确性;</p>
             </li>
             <li>
-                <p>步骤6: 接着客户端继续发送Change Cipher Spec报文。该报文会提示服务器，在此报文之后的通信会采用Pre-master secret密钥加密。</p>
+                <p>步骤10: 服务器同样发送<code>Change-Cipher-Spec</code>报文。告知客户端后续的通信都采用协商的密钥与算法进行加密通信;</p>
             </li>
             <li>
-                <p>步骤7: 客户端发送Finished报文。该报文包含连接至今全部报文的整体校验值。这次握手协商是否能够成功，要以服务器是否能够正确解密该报文作为判定标准。</p>
+                <p>步骤11: 服务器同样发送<code>Finshed(encrypted-handshake-message)</code>报文。服务器也结合所有当前的通信参数信息生成一段数据并采用协商密钥
+                    session secret 与算法加密并发送到客户端;</p>
+            </li>
+        </ul>
+        <p><strong>握手结束</strong></p>
+        <ul>
+            <li>步骤11: 服务器和客户端的Finished报文交换完毕之后，客户端计算所有接收信息的 hash 值，并采用协商密钥解密
+                encrypted_handshake_message，验证服务器发送的数据和密钥，验证通过则握手完成。当然，通信会受到SSL的保护。从此处开始进行应用层协议的通信，即发送HTTP请求。</li>
+        </ul>
+        <p><strong>加密通信和断开</strong></p>
+        <ul>
+            <li>
+                <p>步骤12: 应用层协议通信，即发送HTTP响应。</p>
             </li>
             <li>
-                <p>步骤8: 服务器同样发送Change Cipher Spec报文。</p>
-            </li>
-            <li>
-                <p>步骤9: 服务器同样发送Finshed报文。</p>
-            </li>
-            <li>
-                <p>步骤10: 服务器和客户端的Finished报文交换完毕之后，SSL连接就算建立完成。当然，通信会受到SSL的保护。从此处开始进行应用层协议的通信，即发送HTTP请求。</p>
-            </li>
-            <li>
-                <p>步骤11: 应用层协议通信，即发送HTTP响应。</p>
-            </li>
-            <li>
-                <p>步骤12: 最后由客户端断开连接。断开连接时，发送close_notify报文。上图做客一些省略，这步之后再发送TCP FIN报文来关闭与TCP的通信。</p>
+                <p>步骤13: 最后由客户端断开连接。断开连接时，发送close_notify报文。上图做客一些省略，这步之后再发送TCP FIN报文来关闭与TCP的通信。</p>
             </li>
         </ul>
         <p>在以上流程中，应用层发送数据时会附加一种叫做MAC（Message Authentication Cods）的报文摘要。MAC能够查知报文是否遭到篡改从，从而保护报文的完整性。</p>
