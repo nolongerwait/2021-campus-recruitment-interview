@@ -1,4 +1,4 @@
-### 操作系统
+## 操作系统
 
 <details>
     <summary>进程和线程的区别</summary>
@@ -473,7 +473,7 @@
     <summary>文件管理系统在操作系统中提供了什么功能</summary>
 </details>
 
-### 计算机网络
+## 计算机网络
 <details>
     <summary>浏览器输入一个地址到看到返回内容中间发生了什么?</summary>
     <ol>
@@ -2278,4 +2278,18 @@
         <p>如果是不同网段下的两台电脑，B可以ping通A但是A无法ping通B的原因。这是由于B的IP经过路由器网络地址转换之后，对外显示的是路由器IP，这就导致A实际上无法寻得B的IP，即不知道B的存在。解决此问题的办法就是在A的网络配置中添加静态路由。<br>
             命令为: <code>route -p add 目的地址 mask 子网掩码</code></p>
     </div>
+</details>
+
+### Linux Socket
+
+<details>
+    <summary>Socket之TCP粘包问题</summary>
+</details>
+
+<details>
+    <summary>Socket之TCP半连接和全连接以及半连接攻击</summary>
+</details>
+
+<details>
+    <summary>Socket之I/O模型和I/O复用</summary>
 </details>
