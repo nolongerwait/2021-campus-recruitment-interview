@@ -570,6 +570,20 @@
 </details>
 
 <details>
+    <summary>DNS缓存机制</summary>
+    <div>
+        <p><strong>DNS缓存机制原理</strong></p>
+        <p>简单来说，一条域名的DNS记录会在本地有两种缓存：<strong>浏览器缓存</strong>和<strong>操作系统(OS)缓存</strong>。在浏览器中访问的时候，会优先访问浏览器缓存，如果未命中则访问OS缓存，最后再访问DNS服务器(一般是ISP提供)，然后DNS服务器会递归式的查找域名记录，然后返回。
+        </p>
+        <p>DNS记录会有一个ttl值(time to
+            live)，单位是秒，意思是这个记录最大有效期是多少。经过实验，OS缓存会参考ttl值，但是不完全等于ttl值，而浏览器DNS缓存的时间跟ttl值无关，每种浏览器都使用一个固定值。</p>
+        <p>Windows访问DNS后会把记录保存一段短暂的时间，可通过ipconfig /displaydns 查看windows的DNS缓存、通过ipconfig /flushdns来清除。</p>
+        <p><strong>hosts和DNS缓存</strong></p>
+        <p>在不同系统中hosts优先还是本地DNS缓存优先，是不同的，在Unix下，优先访问顺序是可修改的。默认hosts优先。在Windows系统中，hosts文件会被直接加载到本地DNS缓存中。</p>
+    </div>
+</details>
+
+<details>
     <summary>OSI七层网络模型图：物理/链路/网络/传输/会话/表示/应用</summary>
     <p><img src="image/image12.gif" alt=""></p>
 </details>
@@ -1991,6 +2005,114 @@
             </li>
         </ol>
     </div>
+</details>
+
+<details>
+    <summary>长链接和短链接</summary>
+    <div>
+        <p><strong>长链接介绍</strong></p>
+        <p>HTTP1.1规定了默认保持长连接（HTTP persistent connection
+            ，也有翻译为持久连接），数据传输完成了保持TCP连接不断开（不发RST包、不四次握手），等待在同域名下继续用这个通道传输数据；相反的就是短连接。</p>
+        <p>HTTP首部的<strong>Connection: <em>Keep-alive</em></strong>是HTTP1.0浏览器和服务器的实验性扩展，当前的HTTP1.1
+            RFC2616文档没有对它做说明，因为它所需要的功能已经默认开启，无须带着它，但是实践中可以发现，浏览器的报文请求都会带上它。如果HTTP1.1版本的HTTP请求报文不希望使用长连接，则要在HTTP请求报文首部加上Connection:
+            close。《HTTP权威指南》提到，有部分古老的HTTP1.0
+            代理不理解Keep-alive，而导致长连接失效：客户端--&gt;代理--&gt;服务端，客户端带有Keep-alive，而代理不认识，于是将报文原封不动转给了服务端，服务端响应了Keep-alive，也被代理转发给了客户端，于是保持了“客户端--&gt;代理”连接和“代理--&gt;服务端”连接不关闭，但是，当客户端第发送第二次请求时，代理会认为当前连接不会有请求了，于是忽略了它，长连接失效。书上也介绍了解决方案：当发现HTTP版本为1.0时，就忽略Keep-alive，客户端就知道当前不该使用长连接。其实，在实际使用中不需要考虑这么多，很多时候代理是我们自己控制的，如Nginx代理，代理服务器有长连接处理逻辑，服务端无需做patch处理，常见的是客户端跟Nginx代理服务器使用HTTP1.1协议&amp;长连接，而Nginx代理服务器跟后端服务器使用HTTP1.0协议&amp;短连接。
+        </p>
+        <p>在实际使用中，HTTP头部有了Keep-Alive这个值并不代表一定会使用长连接，客户端和服务器端都可以无视这个值，也就是不按标准来，譬如我自己写的HTTP客户端多线程去下载文件，就可以不遵循这个标准，并发的或者连续的多次GET请求，都分开在多个TCP通道中，每一条TCP通道，只有一次GET，GET完之后，立即有TCP关闭的四次握手，这样写代码更简单，这时候虽然HTTP头有Connection:
+            Keep-alive，但不能说是长连接。正常情况下客户端浏览器、web服务端都有实现这个标准，因为它们的文件又小又多，保持长连接减少重新开TCP连接的开销很有价值。</p>
+        <p><strong>长链接的过期时间</strong></p>
+        <p>户端的长连接不可能无限期的拿着，会有一个超时时间，服务器有时候会告诉客户端超时时间，譬如：</p>
+        <pre data-role="codeBlock" data-info="" class="language-"><code>HTTP/1.1 200 OK
+  Server: ngx_openresty
+  Date: Tue, 08 Apr 2014 05:23:22 GMT
+  Content-Type: text/html; charset = utf-8
+  Transfer-Encoding: chunked
+  Connection: keep-alive
+  Keep-Alive: timeout = 20
+  Vary: Accept-Encoding
+  Last-Modified: Tue, 08 Apr 2014 05:20:01 GMT
+  </code></pre>
+        <p>Keep-Alive:
+            timeout=20，表示这个TCP通道可以保持20秒。另外还可能有max=XXX，表示这个长连接最多接收XXX次请求就断开。对于客户端来说，如果服务器没有告诉客户端超时时间也没关系，服务端可能主动发起四次握手断开TCP连接，客户端能够知道该TCP连接已经无效；另外TCP还有心跳包来检测当前连接是否还活着，方法很多，避免浪费资源。
+        </p>
+        <p><strong>长连接的数据传输完成识别</strong></p>
+        <p>使用长连接之后，客户端、服务端怎么知道本次传输结束呢？两部分：1是判断传输数据是否达到了Content-Length指示的大小；2动态生成的文件没有Content-Length，它是分块传输（chunked），这时候就要根据chunked编码来判断，chunked编码的数据在最后有一个空chunked块，表明本次传输数据结束。
+        </p>
+    </div>
+</details>
+
+<details>
+    <summary>HTTP keep-alive和TCP keep-alive</summary>
+    <div>
+        <p><strong>TCP Keepalive的起源</strong></p>
+        <p>TCP协议中有长连接和短连接之分。短连接环境下，数据交互完毕后，主动释放连接；</p>
+        <p>长连接的环境下，进行一次数据交互后，很长一段时间内无数据交互时，客户端可能意外断电、死机、崩溃、重启，还是中间路由网络无故断开，这些TCP连接并未来得及正常释放，那么，连接的另一方并不知道对端的情况，它会一直维护这个连接，长时间的积累会导致非常多的半打开连接，造成端系统资源的消耗和浪费，且有可能导致在一个无效的数据链路层面发送业务数据，结果就是发送失败。所以服务器端要做到快速感知失败，减少无效链接操作，这就有了TCP的Keepalive（保活探测）机制。
+        </p>
+        <p><strong>TCP Keepalive工作原理</strong></p>
+        <p>当一个 TCP 连接建立之后，启用 TCP Keepalive 的一端便会启动一个计时器，当这个计时器数值到达 0 之后（也就是经过tcp_keep-alive_time时间后，这个参数之后会讲到），一个 TCP
+            探测包便会被发出。这个 TCP 探测包是一个纯 ACK 包（规范建议，不应该包含任何数据，但也可以包含1个无意义的字节，比如0x0。），其 Seq号 与上一个包是重复的，所以其实探测保活报文不在窗口控制范围内。
+        </p>
+        <p>如果一个给定的连接在两小时内（默认时长）没有任何的动作，则服务器就向客户发一个探测报文段，客户主机必须处于以下4个状态之一：</p>
+        <ol>
+            <li>
+                <p>客户主机依然正常运行，并从服务器可达。客户的TCP响应正常，而服务器也知道对方是正常的，服务器在两小时后将保活定时器复位。</p>
+            </li>
+            <li>
+                <p>客户主机已经崩溃，并且关闭或者正在重新启动。在任何一种情况下，客户的TCP都没有响应。服务端将不能收到对探测的响应，并在75秒后超时。服务器总共发送10个这样的探测
+                    ，每个间隔75秒。如果服务器没有收到一个响应，它就认为客户主机已经关闭并终止连接。</p>
+            </li>
+            <li>
+                <p>客户主机崩溃并已经重新启动。服务器将收到一个对其保活探测的响应，这个响应是一个复位，使得服务器终止这个连接。</p>
+            </li>
+            <li>
+                <p>客户机正常运行，但是服务器不可达，这种情况与2类似，TCP能发现的就是没有收到探测的响应。</p>
+            </li>
+        </ol>
+        <p>对于linux内核来说，应用程序若想使用TCP Keepalive，需要设置SO_KEEPALIVE套接字选项才能生效。</p>
+        <p>有三个重要的参数：</p>
+        <ol>
+            <li>
+                <p>tcp_keepalive_time，在TCP保活打开的情况下，最后一次数据交换到TCP发送第一个保活探测包的间隔，即允许的持续空闲时长，或者说每次正常发送心跳的周期，默认值为7200s（2h）。
+                </p>
+            </li>
+            <li>
+                <p>tcp_keepalive_probes 在tcp_keepalive_time之后，没有接收到对方确认，继续发送保活探测包次数，默认值为9（次）</p>
+            </li>
+            <li>
+                <p>tcp_keepalive_intvl，在tcp_keepalive_time之后，没有接收到对方确认，继续发送保活探测包的发送频率，默认值为75s。</p>
+            </li>
+        </ol>
+        <p>其他编程语言有相应的设置方法，这里只谈linux内核参数的配置。例如C语言中的setsockopt()函数，java的Netty服务器框架中也提供了相关接口。</p>
+        <p><strong>TCP Keepalive作用</strong></p>
+        <ol>
+            <li>
+                <p>探测连接的对端是否存活<br>
+                    在应用交互的过程中，可能存在以下几种情况：</p>
+                <ul>
+                    <li>客户端或服务器意外断电，死机，崩溃，重启。</li>
+                    <li>中间网络已经中断，而客户端与服务器并不知道。<br>
+                        利用保活探测功能，可以探知这种对端的意外情况，从而保证在意外发生时，可以释放半打开的TCP连接。</li>
+                </ul>
+            </li>
+            <li>
+                <p>防止中间设备因超时删除连接相关的连接表<br>
+                    中间设备如防火墙等，会为经过它的数据报文建立相关的连接信息表，并为其设置一个超时时间的定时器，如果超出预定时间，某连接无任何报文交互的话，<br>
+                    中间设备会将该连接信息从表中删除，在删除后，再有应用报文过来时，中间设备将丢弃该报文，从而导致应用出现异常。</p>
+            </li>
+        </ol>
+        <p><strong>TCP Keepalive可能导致的问题</strong><br>
+            Keepalive 技术只是 TCP 技术中的一个可选项。因为不当的配置可能会引起一些问题，所以默认是关闭的。</p>
+        <p>可能导致下列问题：</p>
+        <ol>
+            <li>在短暂的故障期间，Keepalive设置不合理时可能会因为短暂的网络波动而断开健康的TCP连接</li>
+            <li>需要消耗额外的宽带和流量</li>
+            <li>在以流量计费的互联网环境中增加了费用开销</li>
+        </ol>
+    </div>
+</details>
+
+<details>
+    <summary>ping IP之后发生了什么？</summary>
 </details>
 
 <details>
