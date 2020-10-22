@@ -1,4 +1,9 @@
-## 操作系统
+<!-- TOC -->
+- [操作系统](#操作系统)
+- [计算机网络](#计算机网络)
+    - [Linux Socket](#linux-socket)
+<!-- /TOC -->
+# 操作系统
 
 <details>
     <summary>进程和线程的区别</summary>
@@ -473,7 +478,7 @@
     <summary>文件管理系统在操作系统中提供了什么功能</summary>
 </details>
 
-## 计算机网络
+# 计算机网络
 <details>
     <summary>浏览器输入一个地址到看到返回内容中间发生了什么?</summary>
     <ol>
@@ -2280,7 +2285,7 @@
     </div>
 </details>
 
-### Linux Socket
+## Linux Socket
 
 <details>
     <summary>Socket之TCP粘包问题</summary>
