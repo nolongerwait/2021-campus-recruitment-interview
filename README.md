@@ -2435,6 +2435,47 @@
 
 <details>
     <summary>Socket之TCP半连接和全连接以及半连接攻击</summary>
+    <div>
+        <p><strong>TCP的全连接和半连接队列</strong><br>
+            当服务端调用listen函数监听端口的时候，内核会为每个监听的socket创建两个队列：</p>
+        <ul>
+            <li><strong>半连接队列</strong>(syn queue)：客户端发送SYN包，服务端收到后回复SYN+ACK后，服务端进入SYN_RCVD状态，这个时候的socket会放到半连接队列。</li>
+            <li><strong>全连接队列</strong>(accept
+                queue)：当服务端收到客户端的ACK后，socket会从半连接队列移出到全连接队列。当调用accpet函数的时候，会从全连接队列的头部返回可用socket给用户进程。</li>
+        </ul>
+        <p><img src="image/image16.jpg" alt=""></p>
+        <p><strong>半连接队列</strong><br>
+            半连接队列的大小由<code>/proc/sys/net/ipv4/tcp_max_syn_backlog</code>控制，Linux的默认是1024。</p>
+        <p>当服务端发送SYN_ACK后将会开启一个定时器，如果超时没有收到客户端的ACK，将会重发SYN_ACK包。重传的次数由<code>/proc/sys/net/ipv4/tcp_synack_retries</code>控制，默认是5次。
+        </p>
+        <p><strong>全连接队列</strong><br>
+            全连接队列的大小通过<code>/proc/sys/net/core/somaxconn</code>指定，在使用<code>listen</code>函数时，内核会根据传入的<code>backlog</code>参数与系统参数<code>somaxconn</code>，取二者的较小值。
+        </p>
+        <p><strong>listen函数：</strong></p>
+        <p><code>int listen(int sockfd, int backlog)</code><br>
+            Nginx和Redis默认的backlog值等于511，Linux默认的backlog 为 128，Java默认的backlog等于50</p>
+        <p>默认情况下，全连接队列满以后，服务端会忽略客户端的 ACK，随后会重传SYN+ACK，也可以修改这种行为，这个值由/proc/sys/net/ipv4/tcp_abort_on_overflow决定。</p>
+        <ul>
+            <li>tcp_abort_on_overflow为0表示三次握手最后一步全连接队列满以后服务端会丢掉客户端发过来的ACK，服务端随后会进行重传SYN+ACK。</li>
+            <li>tcp_abort_on_overflow为1表示全连接队列满以后服务端发送RST给客户端，直接释放资源。</li>
+        </ul>
+        <p><strong>syn_flood攻击</strong><br>
+            &#8203;<br>
+            命令查看<br>
+            netstat -s</p>
+        <pre data-role="codeBlock" data-info="" class="language-"><code>netstat -s | egrep "listen|LISTEN" 
+  // 全连接队列溢出次数
+  667399 times the listen queue of a socket overflowed 
+  // 半连接队列溢出次数
+  667399 SYNs to LISTEN sockets dropped
+  </code></pre>
+        <p>ss -lnt</p>
+        <pre data-role="codeBlock" data-info="" class="language-"><code>[root@mcs opt]# ss -lnt
+  State      Recv-Q Send-Q                        Local Address:Port                                       Peer Address:Port              
+  LISTEN     0      100                                       *:8080                                                  *:*
+  </code></pre>
+        <p>在listen状态下，Send-Q表示全连接队列大小的最大值，Recv-Q表示全连接队列的使用大小，超过最大值则会溢出。</p>
+    </div>
 </details>
 
 <details>
@@ -2490,6 +2531,7 @@
     <summary>Socket之I/O复用</summary>
     <p>https://www.cnblogs.com/aspirant/p/9166944.html</p>
 
-    <p>https://blog.csdn.net/baiye_xing/article/details/76360290?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-5.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-5.channel_param</p>
+    <p>https://blog.csdn.net/baiye_xing/article/details/76360290?utm_medium=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-5.channel_param&depth_1-utm_source=distribute.pc_relevant.none-task-blog-BlogCommendFromBaidu-5.channel_param
+    </p>
 
 </details>
